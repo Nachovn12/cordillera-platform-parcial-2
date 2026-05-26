@@ -283,8 +283,8 @@ public class DashboardService {
 
     private BigDecimal extractVentasTotales(List<?> kpis) {
         return kpis.stream()
-                .filter(Map.class::isInstance)
-                .map(Map.class::cast)
+                .filter(item -> item instanceof Map<?, ?>)
+                .map(this::toStringObjectMap)
                 .filter(kpi -> {
                     String category = String.valueOf(kpi.getOrDefault("categoria", "")).toLowerCase();
                     String name = String.valueOf(kpi.getOrDefault("nombre", "")).toLowerCase();
@@ -293,6 +293,19 @@ public class DashboardService {
                 .map(kpi -> new BigDecimal(String.valueOf(kpi.getOrDefault("valor", "0"))))
                 .findFirst()
                 .orElse(BigDecimal.ZERO);
+    }
+
+    private Map<String, Object> toStringObjectMap(Object value) {
+        Map<?, ?> source = (Map<?, ?>) value;
+        Map<String, Object> typed = new LinkedHashMap<>();
+
+        source.forEach((key, mapValue) -> {
+            if (key != null) {
+                typed.put(String.valueOf(key), mapValue);
+            }
+        });
+
+        return typed;
     }
 
     private List<Map<String, Object>> buildSalesTrend(BigDecimal ventasTotales) {
